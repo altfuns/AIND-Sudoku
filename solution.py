@@ -25,7 +25,25 @@ def naked_twins(values):
     """
 
     # Find all instances of naked twins
+    twins = []
+    for box in boxes:
+        if len(values[box]) == 2:
+            value = values[box]
+            for peer in peers[box]:
+                if value == values[peer]:
+                    unit = [unit for unit in units[box] if peer in unit]
+                    twins.append({"value" : value, "boxes" : [box, peer], "units" : unit})
+
     # Eliminate the naked twins as possibilities for their peers
+    for twin in twins:
+        for unit in twin["units"]:
+            for digit in twin["value"]:
+                dplaces = [box for box in unit if box not in twin["boxes"] and digit in values[box]]
+                for place in dplaces:
+                    assign_value(values, place, values[place].replace(digit, ''))
+    return values
+
+
 
 def cross(A, B):
     "Cross product of elements in A and elements in B."
@@ -88,6 +106,7 @@ def reduce_puzzle(values):
         solved_values_before = len([box for box in values.keys() if len(values[box]) == 1])
         values = eliminate(values)
         values = only_choice(values)
+        values = naked_twins(values)
         solved_values_after = len([box for box in values.keys() if len(values[box]) == 1])
         stalled = solved_values_before == solved_values_after
         if len([box for box in values.keys() if len(values[box]) == 0]):
