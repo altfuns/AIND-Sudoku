@@ -32,6 +32,7 @@ def naked_twins(values):
             for peer in peers[box]:
                 if value == values[peer]:
                     unit = [unit for unit in units[box] if peer in unit]
+                    # Build an object with data needed to remove the twin digits on the peers
                     twins.append({"value" : value, "boxes" : [box, peer], "units" : unit})
 
     # Eliminate the naked twins as possibilities for their peers
@@ -106,6 +107,7 @@ def reduce_puzzle(values):
         solved_values_before = len([box for box in values.keys() if len(values[box]) == 1])
         values = eliminate(values)
         values = only_choice(values)
+        # Apply the naked_twins strategy and constraints to each iteration and recursion
         values = naked_twins(values)
         solved_values_after = len([box for box in values.keys() if len(values[box]) == 1])
         stalled = solved_values_before == solved_values_after
@@ -141,14 +143,20 @@ def solve(grid):
     """
     return search(grid_values(grid))
 
-""" Initialize board entities """
+# Initialize board entities
 rows = 'ABCDEFGHI'
 cols = '123456789'
 boxes = cross(rows, cols)
 row_units = [cross(r, cols) for r in rows]
 column_units = [cross(rows, c) for c in cols]
 square_units = [cross(rs, cs) for rs in ('ABC','DEF','GHI') for cs in ('123','456','789')]
-unitlist = row_units + column_units + square_units
+
+"""
+    Add the two main diagonals to the unit list.
+    Then the strategies algoritms (eliminate, only_choice and naked_twins) can check the constraints
+"""
+diagonal_units = [['A1', 'B2', 'C3', 'D4', 'E5', 'F6', 'G7', 'H8', 'I9'], ['A9', 'B8', 'C7', 'D6', 'E5', 'F4', 'G3', 'H2', 'I1']]
+unitlist = row_units + column_units + square_units + diagonal_units
 units = dict((s, [u for u in unitlist if s in u]) for s in boxes)
 peers = dict((s, set(sum(units[s],[]))-set([s])) for s in boxes)
 
